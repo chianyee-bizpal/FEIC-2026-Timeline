@@ -3,7 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ── Change the two lines below to rename the page and its link preview ── -->
 <title>FEIC 2026 Control Room</title>
+<meta name="description" content="Live project plan for the BizPal Financial Empowerment Innovation Challenge 2026 — dashboard, timeline, board and work breakdown.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="FEIC 2026 Control Room">
+<meta property="og:description" content="Live project plan for the BizPal Financial Empowerment Innovation Challenge 2026 — dashboard, timeline, board and work breakdown.">
+<meta property="og:site_name" content="BizPal FEIC 2026">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FEIC 2026 Control Room">
+<meta name="twitter:description" content="Live project plan for FEIC 2026 — dashboard, timeline, board and work breakdown.">
+<meta name="theme-color" content="#0E6E6A">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='13' fill='%230E6E6A'/%3E%3Ctext x='32' y='45' font-family='Archivo,Arial,sans-serif' font-size='34' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -358,7 +371,7 @@ function newId(){var n=1;while(custom['C-'+String(n).padStart(3,'0')])n++;return
 function addTask(f){
   var id=newId();
   custom[id]={id:id,isCustom:true,phase:f.phase,ws:f.ws,main:WS[f.ws].name,sub:f.sub,desc:f.desc||'',
-    dod:f.dod||'',owner:f.owner,start:f.start,due:f.due,revised:'',actual:'',priority:f.priority,
+    dod:f.dod||'',owner:f.owner,start:f.start,due:f.due,revised:'',actual:f.actual||'',priority:f.priority,
     status:f.status,deps:[],milestone:'',risk:'',notes:f.notes||'',mode:f.mode||'',brief:'',
     source:'Added by the team'};
   saveLocal();
@@ -571,6 +584,7 @@ function time(){
     '<div class="bar"><select id="gowner"><option value="">Everyone</option>'+
     D.owners.map(function(o){return '<option value="'+esc(o)+'"'+(o===GF.owner?' selected':'')+'>'+esc(o)+'</option>';}).join('')+
     '</select><button class="btn" id="gall">Show all tasks</button><button class="btn" id="gnone">Workstreams only</button>'+
+    '<button class="btn on" id="gadd">+ Add task</button>'+
     '<span class="spacer"></span><span class="legend">'+STATUSES.map(function(s){
       return '<span><i class="sw" style="background:'+SC[s]+'"></i>'+s+'</span>';}).join('')+'</span></div>';
   h+='<div class="gantt"><div class="gwrap"><div class="ginner"><div class="ghead"><div class="glabel">Workstream / task</div>'+
@@ -603,6 +617,7 @@ function time(){
   h+='</div></div></div>';
   el('v-time').innerHTML=h;
   el('gowner').onchange=function(){GF.owner=this.value;time();};
+  el('gadd').onclick=function(){openNew(null,null);};
   el('gall').onclick=function(){D.workstreams.forEach(function(w){GOPEN[w.id]=true;});time();};
   el('gnone').onclick=function(){D.workstreams.forEach(function(w){GOPEN[w.id]=false;});time();};
   [].forEach.call(el('v-time').querySelectorAll('[data-ws]'),function(n){
@@ -752,19 +767,25 @@ function openNew(wsPre,phasePre){
     '<div class="row2">'+
       fld('Start date','<input type="date" id="n_start" value="'+TODAY+'">')+
       fld('Deadline','<input type="date" id="n_due" value="'+addDays(TODAY,7)+'">')+'</div>'+
-    fld('How it runs','<select id="n_mode">'+opts(MODEOPTS,'')+'</select>')+
+    '<div class="row2">'+
+      fld('Status','<select id="n_status">'+opts(STATUSES,'Not Started')+'</select>')+
+      fld('How it runs','<select id="n_mode">'+opts(MODEOPTS,'')+'</select>')+'</div>'+
+    '<p class="mutedline" style="margin:-4px 0 12px" id="n_help">'+HELP['Not Started']+'</p>'+
     fld('Notes','<textarea id="n_notes" rows="2" placeholder="Optional"></textarea>')+
     '</div><div class="mfoot"><button class="btn on" id="nsave">Add task</button>'+
     '<button class="btn" id="ncancel">Cancel</button></div>';
   wrapModal(h);
   el('ncancel').onclick=shut;
+  el('n_status').onchange=function(){el('n_help').textContent=HELP[this.value]||'';};
   el('nsave').onclick=function(){
     var sub=el('n_sub').value.trim();
     if(!sub){toast('Give the task a name first.');return;}
     var st=el('n_start').value||TODAY,du=el('n_due').value||addDays(TODAY,7);
     if(du<st){toast('The deadline cannot be before the start date.');return;}
+    var stt=el('n_status').value;
     addTask({sub:sub,desc:el('n_desc').value,owner:el('n_owner').value,priority:el('n_pri').value,
-      ws:el('n_ws').value,phase:el('n_phase').value,start:st,due:du,status:'Not Started',
+      ws:el('n_ws').value,phase:el('n_phase').value,start:st,due:du,status:stt,
+      actual:(stt==='Done'?TODAY:''),
       mode:el('n_mode').value,notes:el('n_notes').value});
     shut();
   };
